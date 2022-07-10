@@ -4,6 +4,10 @@ This repository,used to commit task code
 
 ！！！我给每个人安排了一个工作文件夹，请提交代码时注意仅修改自己的文件夹！！！
 
+# 参考编程规范
+    谷歌编程规范
+    link:https://zh-google-styleguide.readthedocs.io/en/latest/google-cpp-styleguide/
+
 # How to commit
     首次拉取仓库到本地时，请先安装git，在指定文件夹下键入命令"git clone https://github.com/hdu-ros/ros_ws.git"，即可将云端代码拉取到本地，之后就可以编写代码啦！
 
