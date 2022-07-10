@@ -1,0 +1,38 @@
+/*demo01_pub.cpp*/
+#include "ros/ros.h"
+//1.包含头文件
+//ROS文本类型---> std_msgs/String.h
+#include "sstream"
+/*发布方实现*/
+int main(int argc, char *argv[])
+{
+	//避免中文乱码
+	setlocale(LC_ALL,"");
+	//初始化ros节点
+	ros::NodeHandle nh;
+	//创建发布者对象
+	ros::Publisher pub = nh.advertise<std_msgs::String>("fang",10);
+	//编写发布逻辑并发布数据
+	//要求以10HZ的频率发布数据，并且文本后添加编号
+	//先创建被发布的数据
+	std_msgs::String msg;
+	//发布频率
+	ros::Rate rate(10);
+	//设置编号
+	int count =0;
+	//休眠
+	ros::Duration(3).sleep();
+	while(ros::ok())
+	{
+		count++;
+		//实现字符串拼接数字
+		std::stringstream ss;
+		ss << "hello-->" <<count;
+		pub.publish(msg)
+		//添加日志
+		ROS_INFO("发布的数据是:%s",ss.str().c_str());
+		rate.sleep();
+		ros::spinOnce();//处理回调函数
+	}
+	return 0；
+}
