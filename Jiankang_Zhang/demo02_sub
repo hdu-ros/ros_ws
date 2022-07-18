@@ -1,1 +1,479 @@
+//参数服务器程序
 
+<例程一>
+#include "ros/ros.h"
+/*
+    实现参数的新增与修改
+    需求:首先设置机器人的共享参数，类型，半径(0.15)
+                再修改半径(0.2)
+    实现：
+                ros::NodeHandle
+                            setParam("键",值)；
+                ros::param
+                        set("键",值)；
+*/
+int main(int argc, char *argv[])
+{
+        //   1.初始化ros节点
+        /*
+                作用:ROS初始化函数
+                参数：
+                            1.argc      ----    封装实参的个数(n+1)
+                            2.argv      ----    封装参数的数组
+                            3.name   ----    为节点命名(唯一性)
+                            4.options---     节点启动选项
+                            返回值:void
+                使用：
+                            1.argc与argv的使用
+                                如果按照ROS中的特定格式传入实参，那么ROS可以加以使用，比如可以用来设置全局参数，给节点重命名
+                            2.options 的使用            
+                                节点名称需要保证唯一性，会导致同一个节点不能重复启动
+                                结果：重名节点重复启动时，之前的节点会被关闭。
+                                需求:   特定场景需要一个节点多次启动且能正常运行，怎么办
+                                解决：ros::init(argc, argv,"set_param_c",ros::init_options::anonymousName);(设置启动项：节点名后缀随机数)
+        */
+        ros::init(argc, argv,"set_param_c");//节点名称需要保证唯一
+        //    2.创建节点句柄
+        ros::NodeHandle nh;
+        //    3.参数增(修改)
+        //方案一：nh
+        nh.setParam("type","xiaoHuang");
+         nh.setParam("radius",0.15);
+        //方案二：ros::param
+        ros::param::set("type_param","xiaoBai");
+        ros::param::set("radius_param",0.15);
+    return 0;
+}
+
+<例程二>
+#include "ros/ros.h"
+/*
+    
+    实现：
+                ros::NodeHandle
+    参数服务器操作之查询_C++实现:
+    在 roscpp 中提供了两套 API 实现参数操作
+    ros::NodeHandle
+
+        param(键,默认值) 
+            存在，返回对应结果，否则返回默认值
+
+        getParam(键,存储结果的变量)
+            存在,返回 true,且将值赋值给参数2
+            若果键不存在，那么返回值为 false，且不为参数2赋值
+
+        getParamCached键,存储结果的变量)--提高变量获取效率
+            存在,返回 true,且将值赋值给参数2
+            若果键不存在，那么返回值为 false，且不为参数2赋值
+
+        getParamNames(std::vector<std::string>)
+            获取所有的键,并存储在参数 vector 中 
+
+        hasParam(键)
+            是否包含某个键，存在返回 true，否则返回 false
+
+        searchParam(参数1，参数2)
+            搜索键，参数1是被搜索的键，参数2存储搜索结果的变量
+
+    ros::param ----- 与 NodeHandle 类似
+                ros::param
+                        set("键",值)；
+*/
+int main(int argc, char *argv[])
+{
+    setlocale(LC_ALL,"");
+        //   1.初始化ros节点
+        ros::init(argc, argv,"get_param_c");//节点名称需要保证唯一
+        //    2.创建节点句柄
+        ros::NodeHandle nh;
+       //1.param
+       double radius = nh.param("radius",0.5);
+       ROS_INFO("radius = %.2f",radius);
+       //2.getParam
+       double radius2=0.0;
+       bool result = nh.getParam("radius",radius2);
+       if (result)
+       {
+           ROS_INFO("获取的半径是:%.2f",radius2);
+
+       } else {
+           ROS_INFO("被查询的变量不存在");
+       }
+       //3.getParamCached 与getParam类似
+       double radius3=0.0;
+       bool result1 = nh.getParamCached("radius",radius3);
+ if (result1)
+       {
+           ROS_INFO("获取的半径是:%.2f",radius2);
+
+       } else {
+           ROS_INFO("被查询的变量不存在");
+       }
+       //4.getParamNames()
+       std::vector<std::string> names;//保存变量名称
+       nh.getParamNames(names);
+       for(auto &&name : names)
+       {
+           ROS_INFO("遍历的元素:%s",name.c_str());
+       }
+       //5.hasParam
+bool flag1 = nh.hasParam("radius");
+bool flag2 = nh.hasParam("radiusxxxx");
+ROS_INFO("radius 存在吗？%d",flag1);
+ROS_INFO("radiusxxxx 存在吗？%d",flag2);
+        //6.searchParam()
+        std::string key;//保存搜索到的变量
+        nh.searchParam("radius",key);
+        ROS_INFO("搜索结果:%s",key.c_str());
+        //ros::Param---------------------------------------------------------------------------------
+    return 0;
+}
+
+<例程三>
+#include "ros/ros.h"
+/*
+            演示参数的删除
+实现:
+            ros::NodeHandle
+                    deleteParam()
+            ros::param
+                    del()
+*/
+int main(int argc, char *argv[])
+{
+     setlocale(LC_ALL,"");
+        //   1.初始化ros节点
+        ros::init(argc, argv,"del_param_c");//节点名称需要保证唯一
+        //    2.创建节点句柄
+        ros::NodeHandle nh;
+        //    3.参数删除
+        //方案一：nh
+        bool flag1 = nh.deleteParam("radius");
+        if(flag1)
+        {
+            ROS_INFO("删除成功");
+        } else {
+        ROS_INFO("删除失败");
+        }
+       
+        //方案二：ros::param
+       bool flag2 = ros::param::del("radius_param");
+        if(flag2)
+        {
+            ROS_INFO("删除成功");
+        } else {
+        ROS_INFO("删除失败");
+        }
+    return 0;
+}
+
+
+
+//TF坐标转换
+1.静态坐标转换
+发布者
+#include "ros/ros.h"
+#include "tf2_ros/static_transform_broadcaster.h"
+#include "geometry_msgs/TransformStamped.h"
+#include "tf2/LinearMath/Quaternion.h"
+/*
+        需求:发布两个坐标系的相对关系
+        流程:
+                    1.包含头文件
+                    2.设置编码 节点初始化 NodeHandle(不必须)
+                    3.创建发布对象
+                    4.组织被发布的消息
+                    5.发布数据
+                    6.spin()
+*/
+int main(int argc, char *argv[])
+{
+                    // 2.设置编码 节点初始化 NodeHandle(不必须)
+                    setlocale(LC_ALL,"");
+                    ros::init(argc,argv,"static_pub");
+                    ros::NodeHandle nh;
+                    // 3.创建发布对象
+                    tf2_ros::StaticTransformBroadcaster pub;
+                    // 4.组织被发布的消息
+                    geometry_msgs::TransformStamped tfs;
+                    tfs.header.stamp = ros::Time::now();
+                    tfs.header.frame_id = "base_link";//相对坐标系关系中被参考的那个
+                    tfs.child_frame_id = "laser";
+                    //相对偏移量
+                    tfs.transform.translation.x = 0.2;
+                    tfs.transform.translation.y = 0.0;
+                    tfs.transform.translation.z = 0.5;
+                    //需要根据欧拉角转换
+                    tf2::Quaternion qtn;//创建四元数对象
+                    //向该对象设置欧拉角，这个对象可以将欧拉角转换成四元数
+                    qtn.setRPY(0,0,0);//欧拉角的单位是弧度
+                    tfs.transform.rotation.x=qtn.getX();
+                    tfs.transform.rotation.y=qtn.getY();
+                    tfs.transform.rotation.z=qtn.getZ();
+                    tfs.transform.rotation.w=qtn.getW();
+                    // 5.发布数据
+                    pub.sendTransform(tfs);
+
+                    // 6.spin()
+                    ros::spin();
+    return 0;
+}
+
+2.订阅者
+#include "ros/ros.h"
+#include "tf2_ros/transform_listener.h"
+#include  "tf2_ros/buffer.h"
+#include "geometry_msgs/PointStamped.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+/*
+    订阅方:订阅发布的坐标系相对关系，传入一个坐标点，调用tf实现转换
+    流程:
+                1.包含头文件；
+                 2.设置编码 节点初始化 NodeHandle(必须)
+                3.创建订阅对象--->订阅坐标系相对关系
+                4.组织一个坐标点数据
+                5.转换算法,需要tf内置实现
+                6.最后输出
+*/
+int main(int argc, char *argv[])
+{
+                    // 2.设置编码 节点初始化 NodeHandle(不必须)
+                    setlocale(LC_ALL,"");
+                    ros::init(argc,argv,"static_sub");
+                    ros::NodeHandle nh;
+                    // 3.创建订阅对象--->订阅坐标系相对关系
+                    //3-1：创建一个buffer缓存
+                    tf2_ros::Buffer buffer;
+                    //3-2：再创建监听对象(监听对象可以将订阅的数据存入buffer)
+                    tf2_ros::TransformListener listener(buffer);
+                    // 4.组织一个坐标点数据
+                    geometry_msgs::PointStamped ps;
+                    ps.header.frame_id = "laser";
+                    ps.header.stamp=ros::Time::now();
+                    ps.point.x=2.0;
+                    ps.point.y=3.0;
+                    ps.point.z=5.0;
+                    // 5.转换算法,需要tf内置实现
+                    ros::Rate rate(10);
+                    //ros::Duration(2).sleep();//休眠两秒钟
+                    while (ros::ok)
+                    {
+                        //核心代码实现---->将ps转换成相对于base_link的坐标点
+                        /*参数1：被转换的坐标点，参数2：目标坐标系，参数3：输出的坐标点*/
+                        try
+                        {
+                             geometry_msgs::PointStamped ps_out = buffer.transform(ps,"base_link");
+                             ROS_INFO("转换后的坐标值:(%.2f,%.2f,%.2f),参考的坐标系:%s",ps_out.point.x,ps_out.point.y,ps_out.point.z,ps_out.header.frame_id.c_str());
+                        }
+                        catch(const std::exception& e)
+                        {
+                          //  std::cerr << e.what() << '\n';
+                            ROS_INFO("异常消息：%s",e.what());
+                        }
+                        //循环必备
+                        rate.sleep();
+                        ros::spinOnce();
+                    }
+                    
+                    // 6.最后输出
+    return 0;
+}
+
+2.动态坐标转换
+发布者
+#include "ros/ros.h"
+#include "turtlesim/Pose.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/TransformStamped.h"
+#include "tf2/LinearMath/Quaternion.h"
+/*
+        发布方:订阅乌龟的位姿信息转换成相对于窗体的坐标关系，并发布
+        准备:
+                    话题：/turtle1/pose
+                    消息：/turtlesim/Pose
+        流程:
+                    1.包含头文件
+                    2.设置编码 节点初始化 NodeHandle(不必须)
+                    3.创建订阅对象，订阅/turtle1/pose
+                    4.回调函数处理订阅的消息:将位姿信息转换成坐标相对关系并发布(关注)
+                    5.spin()
+*/
+//4.回调函数处理订阅的消息:将位姿信息转换成坐标相对关系并发布(关注)
+void doPose(const turtlesim::Pose::ConstPtr& pose)//参数为订阅的信息类型
+{
+        //获取位姿信息,转换成坐标相对关系并发布(关注)
+        //a.创建发布对象
+        static  tf2_ros::TransformBroadcaster pub;
+        //b.组织被发布的数据；
+        geometry_msgs::TransformStamped ts;
+        ts.header.frame_id="world";
+        ts.header.stamp=ros::Time::now();
+        ts.child_frame_id="turtle1";
+        //坐标系偏移量设置
+        ts.transform.translation.x=pose->x;
+        ts.transform.translation.y=pose->y;
+        ts.transform.translation.z=0;
+        //坐标系四元数
+        /*
+            位姿信息中没有四元数，但是有个偏航角度，又已知乌龟是2D，没有翻滚与俯仰角度，则乌龟的欧拉角：0，0，theta
+        */
+       tf2::Quaternion qtn;
+       qtn.setRPY(0,0,pose->theta);
+        ts.transform.rotation.x= qtn.getX();
+        ts.transform.rotation.y= qtn.getY();
+        ts.transform.rotation.z= qtn.getZ();
+        ts.transform.rotation.w= qtn.getW();
+        //发布
+        pub.sendTransform(ts);
+
+}
+int main(int argc, char *argv[])
+{
+    // 2.设置编码 节点初始化 NodeHandle(不必须)
+                    setlocale(LC_ALL,"");
+                    ros::init(argc,argv,"static_pub");
+                    ros::NodeHandle nh;
+                    //3.创建订阅对象，订阅/turtle1/pose
+                    ros::Subscriber sub = nh.subscribe("/turtle1/pose",100,doPose);
+                    // 5.spin()
+                    ros::spin();
+
+
+    return 0;
+}
+
+订阅者
+#include "ros/ros.h"
+#include "tf2_ros/transform_listener.h"
+#include  "tf2_ros/buffer.h"
+#include "geometry_msgs/PointStamped.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+/*
+    订阅方:订阅发布的坐标系相对关系，传入一个坐标点，调用tf实现转换
+    流程:
+                1.包含头文件；
+                 2.设置编码 节点初始化 NodeHandle(必须)
+                3.创建订阅对象--->订阅坐标系相对关系
+                4.组织一个坐标点数据
+                5.转换算法,需要tf内置实现
+                6.最后输出
+*/
+int main(int argc, char *argv[])
+{
+                    // 2.设置编码 节点初始化 NodeHandle(不必须)
+                    setlocale(LC_ALL,"");
+                    ros::init(argc,argv,"dynamic_sub");
+                    ros::NodeHandle nh;
+                    // 3.创建订阅对象--->订阅坐标系相对关系
+                    //3-1：创建一个buffer缓存
+                    tf2_ros::Buffer buffer;
+                    //3-2：再创建监听对象(监听对象可以将订阅的数据存入buffer)
+                    tf2_ros::TransformListener listener(buffer);
+                    // 4.组织一个坐标点数据
+                    geometry_msgs::PointStamped ps;
+                    //参考坐标系
+                    ps.header.frame_id = "turtle1";
+                    ps.header.stamp=ros::Time(0.0);//
+                    ps.point.x=2.0;
+                    ps.point.y=3.0;
+                    ps.point.z=5.0;
+                    // 5.转换算法,需要tf内置实现
+                    ros::Rate rate(10);
+                    //ros::Duration(2).sleep();//休眠两秒钟
+                    while (ros::ok)
+                    {
+                        //核心代码实现---->将ps转换成相对于base_link的坐标点
+                        /*参数1：被转换的坐标点，参数2：目标坐标系，参数3：输出的坐标点*/
+                        try
+                        {
+                             geometry_msgs::PointStamped ps_out = buffer.transform(ps,"world");
+                             ROS_INFO("转换后的坐标值:(%.2f,%.2f,%.2f),参考的坐标系:%s",ps_out.point.x,ps_out.point.y,ps_out.point.z,ps_out.header.frame_id.c_str());
+                        }
+                        catch(const std::exception& e)
+                        {
+                            //std::cerr << e.what() << '\n';
+                            ROS_INFO("异常消息：%s",e.what());
+                        }
+                        
+                       
+                        rate.sleep();
+                        ros::spinOnce();
+                    }
+                    
+                    // 6.最后输出
+    return 0;
+}
+
+
+多坐标转换
+
+<launch>
+    <!-- 发布son1相当于world以及son2相当于world的坐标关系-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="son1" args="5 0 0 0 0 0 /world /son1" output="screen" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="son2" args="3 0 0 0 0 0 /world /son2" output="screen" />
+</launch>
+
+订阅者
+#include "ros/ros.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
+#include "geometry_msgs/PointStamped.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "geometry_msgs/TransformStamped.h"
+/*
+        订阅方实现:1.计算son1和son2的相对关系 2.计算son1的某个坐标点在son2的坐标值
+        流程: 
+                    1.包含头文件
+                    2.设置编码 节点初始化 NodeHandle(不必须)
+                    3.创建订阅对象
+                    4.编写解析逻辑
+                    5.spinOnce()
+
+*/
+int main(int argc, char *argv[])
+{
+                    // 2.设置编码 节点初始化 NodeHandle(不必须)
+                     setlocale(LC_ALL,"");
+                    ros::init(argc,argv,"tfs_sub");
+                    ros::NodeHandle nh;
+                    // 3.创建订阅对象
+                    tf2_ros::Buffer buffer;
+                    tf2_ros::TransformListener  sub(buffer);
+                    // 4.编写解析逻辑
+                    //创建坐标点
+                    geometry_msgs::PointStamped psAtSon1;
+                    psAtSon1.header.stamp = ros::Time::now();
+                    psAtSon1.header.frame_id="son1";
+                    psAtSon1.point.x=1.0;
+                    psAtSon1.point.y=2.0;
+                    psAtSon1.point.z=3.0;
+                    ros::Rate rate(10);
+                    while (ros::ok())
+                    {
+                        //核心
+                        try
+                        {
+                           //1.计算son1和son2的相对关系
+                           geometry_msgs::TransformStamped Son1ToSon2 = buffer.lookupTransform("son2","son1",ros::Time(0));//参数1：目标坐标系  参数2:源坐标系  参数3:ros::Time(0) :取间隔最短的两个坐标关系帧计算相对关系  返回值:geometry_msgs::TransformStamped
+                           ROS_INFO("son1 相当于 son2 的信息：父级:%s 子级:%s 偏移量(%.2f,%.2f,%.2f)",
+                           Son1ToSon2.header.frame_id.c_str(),
+                           Son1ToSon2.child_frame_id.c_str(),
+                           Son1ToSon2.transform.translation.x,
+                           Son1ToSon2.transform.translation.y,
+                           Son1ToSon2.transform.translation.z);
+                           //2.计算son1的某个坐标点在son2的坐标值
+                           geometry_msgs::PointStamped psAtSon2 = buffer.transform(psAtSon1,"son2");
+                           ROS_INFO("坐标点在son2中的值(%.2f,%.2f,%.2f)",psAtSon1.point.x,psAtSon1.point.y,psAtSon1.point.z);
+                        }
+                        catch(const std::exception& e)
+                        {
+                            //std::cerr << e.what() << '\n';
+                            ROS_INFO("错误信息:%s",e.what());
+                        }
+                        rate.sleep();
+                        ros::spinOnce();
+                    }
+                    
+                    // 5.spinOnce()
+    return 0;
+}
